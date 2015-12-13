@@ -1,0 +1,23 @@
+{
+  "name": "electron-sample",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hurumeki/electron-sample.git"
+  },
+  "author": "hurumeki",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/hurumeki/electron-sample/issues"
+  },
+  "homepage": "https://github.com/hurumeki/electron-sample#readme",
+  "devDependencies": {
+    "electron-prebuilt": "^0.36.0"
+  }
+}
