@@ -1,13 +1,17 @@
+require('dotenv').load();
+
 const electron = require('electron');
 const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;  // Module to create native browser window.
 
 // Report crashes to our server.
-electron.crashReporter.start();
+// electron.crashReporter.start();
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow = null;
+
+global.sharedObject = {};
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -35,3 +39,7 @@ app.on('ready', function() {
     mainWindow = null;
   });
 });
+
+require('coffee-script/register');
+var robot = require('./remote/load-hubot.coffee');
+global.sharedObject.robot = robot;

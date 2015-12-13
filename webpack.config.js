@@ -1,5 +1,5 @@
 module.exports = {
-  target: "atom",
+  target: 'atom',
 
   context: __dirname + '/src',
 
@@ -7,7 +7,7 @@ module.exports = {
 
   output: {
     path: __dirname + '/dist',
-    filename: "index.js",
+    filename: 'index.js',
   },
 
   resolve: {
@@ -19,24 +19,8 @@ module.exports = {
       {
         test: /\.jsx?$/,
         exclude: /node_modules/,
-        loader: "babel-loader",
-        query: {
-         presets: ['react', 'es2015']
-        }
-      },
-      {
-        test: /\.coffee$/,
-        loader: "coffee-loader"
-      },
-      // {
-      //   test: /\.json$/,
-      //   loader: "json-loader"
-      // },
-      // {
-      //   test: /\.png$/,
-      //   exclude: /node_modules/,
-      //   loader: "file-loader"
-      // }
+        loader: 'babel'
+      }
     ],
   }
 };
