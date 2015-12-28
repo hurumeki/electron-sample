@@ -2,14 +2,15 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <title>Hello World!</title>
+    <title>Mascot Ops</title>
   </head>
   <body>
-    <h1>Hello World!</h1>
-    We are using node <script>document.write(process.versions.node)</script>,
-    Chrome <script>document.write(process.versions.chrome)</script>,
-    and Electron <script>document.write(process.versions.electron)</script>.
-    <div id="wrapper"></div>
+    <div id="wrapper" class="wrapper">
+      <div id="mascot" class="mascot-container"></div>
+      <div id="messages" class="messages-container"></div>
+      <div id="input" class="input-container"></div>
+    </div>
+    <div class="resize-handle"></div>
     <script src="./dist/index.js"></script>
   </body>
 </html>

@@ -3,6 +3,7 @@ require('dotenv').load();
 const electron = require('electron');
 const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;  // Module to create native browser window.
+const globalShortcut = electron.globalShortcut;
 
 // Report crashes to our server.
 // electron.crashReporter.start();
@@ -11,7 +12,9 @@ const BrowserWindow = electron.BrowserWindow;  // Module to create native browse
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow = null;
 
-global.sharedObject = {};
+global.sharedObject = {
+  robot: null
+};
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -22,11 +25,19 @@ app.on('window-all-closed', function() {
   }
 });
 
+app.on('will-quit', function() {
+  // Unregister a shortcut.
+  globalShortcut.unregister('ctrl+x');
+
+  // Unregister all shortcuts.
+  globalShortcut.unregisterAll();
+});
+
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 app.on('ready', function() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({width: 800, height: 600});
+  mainWindow = new BrowserWindow({width: 300, height: 600, frame: false, transparent: true});
 
   // and load the index.html of the app.
   mainWindow.loadURL('file://' + __dirname + '/index.html');
@@ -38,8 +49,33 @@ app.on('ready', function() {
     // when you should delete the corresponding element.
     mainWindow = null;
   });
+
+  mainWindow.on('focus', function() {
+    mainWindow.webContents.send('focus');
+  });
+
+  mainWindow.on('blur', function() {
+    mainWindow.webContents.send('blur');
+  });
+
+  registerGlobalShortcut();
+  loadHubot();
 });
 
-require('coffee-script/register');
-var robot = require('./remote/load-hubot.coffee');
-global.sharedObject.robot = robot;
+function loadHubot() {
+  require('coffee-script/register');
+  var robot = require('./remote/load-hubot.coffee');
+  global.sharedObject.robot = robot;
+}
+
+function registerGlobalShortcut() {
+  var ret;
+  if(process.env.MOPS_VOICE_SHORTCUT) {
+    ret = globalShortcut.register(process.env.MOPS_VOICE_SHORTCUT, function() {
+      mainWindow.webContents.send('voice-input');
+    });
+  }
+  if (!ret) {
+    console.log('MOPS_VOICE_SHORTCUT is not set or wrong Accelerator');
+  }
+}
