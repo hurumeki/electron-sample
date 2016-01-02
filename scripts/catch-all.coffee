@@ -5,5 +5,4 @@
 #
 module.exports = (robot) ->
   robot.catchAll (msg) ->
-    console.log(msg.message.text)
     msg.send msg.message?.text

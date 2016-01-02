@@ -43,17 +43,6 @@ robot.receiveInput = (input) ->
     else
       @receiveCommand input
 
-robot.receiveVoice = (input) ->
-  splitter = 'robotalias'
-  re = new RegExp("/#{robot.alias}|#{robot.name}/", 'g')
-  inputWithoutName = input.replace(re, splitter)
-  Kuromojin.tokenize(inputWithoutName).then (results) =>
-    userCommand = @findUserCommand results
-    if userCommand?
-      @receiveCommand userCommand.text, userCommand.room
-    else
-      @receiveCommand input
-
 robot.extractWords = (results) ->
   words = for result in results
     if result.pos == '名詞' || result.pos == '動詞'

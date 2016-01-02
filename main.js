@@ -4,16 +4,22 @@ const electron = require('electron');
 const app = electron.app;  // Module to control application life.
 const BrowserWindow = electron.BrowserWindow;  // Module to create native browser window.
 const globalShortcut = electron.globalShortcut;
+const Menu = electron.Menu;
 
 // Report crashes to our server.
-// electron.crashReporter.start();
+electron.crashReporter.start({
+  companyName: 'MascotOps',
+  submitURL: 'https://thawing-wave-8477.herokuapp.com/'
+});
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 var mainWindow = null;
 
 global.sharedObject = {
-  robot: null
+  robot: null,
+  mascot: {},
+  mainWindow: null
 };
 
 // Quit when all windows are closed.
@@ -58,14 +64,28 @@ app.on('ready', function() {
     mainWindow.webContents.send('blur');
   });
 
+  sharedObject.mainWindow = mainWindow;
+
   registerGlobalShortcut();
+  registerMenu();
   loadHubot();
+  loadMascotConfig();
 });
 
 function loadHubot() {
   require('coffee-script/register');
   var robot = require('./remote/load-hubot.coffee');
   global.sharedObject.robot = robot;
+}
+
+function loadMascotConfig() {
+  var mascotConfig;
+  if (process.env.MOPS_ASSETS_PACKAGE) {
+    mascotConfig = require(process.env.MOPS_ASSETS_PACKAGE);
+  } else {
+    mascotConfig = require('mascot-ops-assets-pronama-chan');
+  }
+  global.sharedObject.mascotConfig = mascotConfig;
 }
 
 function registerGlobalShortcut() {
@@ -79,3 +99,8 @@ function registerGlobalShortcut() {
     console.log('MOPS_VOICE_SHORTCUT is not set or wrong Accelerator');
   }
 }
+
+function registerMenu() {
+  var menu = Menu.buildFromTemplate(require('./remote/menu-template'));
+  Menu.setApplicationMenu(menu);
+};

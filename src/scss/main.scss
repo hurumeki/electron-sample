@@ -98,12 +98,21 @@ body {
   }
 }
 
+.progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
 .blur {
   .messages-container {
     opacity: 0;
     transition: opacity 1s linear 5s;;
   }
   .input-container {
+    opacity: 0;
+  }
+  .resize-handle {
     opacity: 0;
   }
 

@@ -36,19 +36,32 @@ var Messages = React.createClass({
   }
 });
 
-
 var Input = React.createClass({
+  getInitialState() {
+    return {
+      placeholder: this.props.placeholder
+    };
+  },
   sendMessage(e) {
     if (e.keyCode == 13) {
       this.props.sendMessage(e.target.value);
+      this.refs.input.value = '';
     }
   },
   render() {
+    var placeholder = this.state.placeholder;
+    if (placeholder === '') {
+      placeholder = 'Input Text';
+      if (process.env.MOPS_VOICE_SHORTCUT) {
+        placeholder = process.env.MOPS_VOICE_SHORTCUT;
+      }
+    }
     return (
       <div className="input">
-        <input type="text"
+        <input ref="input"
+          type="text"
           className="input__text"
-          placeholder="..."
+          placeholder={ placeholder }
           onKeyDown={ this.sendMessage } />
       </div>
     );

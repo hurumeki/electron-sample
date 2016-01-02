@@ -1,36 +1,50 @@
 import ipcRenderer from 'ipc';
-import remote from 'remote';
+import Remote from 'remote';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Recognition from './es6/recognition.js';
+import MMD from './es6/mmd.js';
 import { Input, Messages, Mascot } from './jsx/index.jsx';
 
 import css from './scss/main.scss';
 
+const Menu = Remote.Menu;
+const MenuItem = Remote.MenuItem;
+
 var recognitionStarted = false,
   recognitionStopTimer = null;
 
-var sharedObject = remote.getGlobal('sharedObject');
+var sharedObject = Remote.getGlobal('sharedObject');
 var robot = sharedObject.robot;
+var mascotConfig = sharedObject.mascotConfig;
+var mainWindow = sharedObject.mainWindow;
 
-var i = ReactDOM.render(
-  <Input sendMessage={ (text) => {
+var input = ReactDOM.render(
+  <Input
+    placeholder=''
+    sendMessage={ (text) => {
     addMessages(text, 'user');
     robot.receiveInput(text);
   } } />,
   document.getElementById('input')
 );
 
-var m = ReactDOM.render(
-  <Messages messages={ [ { id: 1, type: 'chara', body: 'first' } ] } />,
+var messages = ReactDOM.render(
+  <Messages messages={ [] } />,
   document.getElementById('messages')
 );
 
-var mascot = ReactDOM.render(
-  <Mascot
-    style={ { width: '100%' } } />,
-  document.getElementById('mascot')
-);
+var mascot;
+if (mascotConfig.main) {
+  mascot = ReactDOM.render(
+    <Mascot
+      src={ mascotConfig.main }
+      style={ { width: '100%' } } />,
+    document.getElementById('mascot')
+  );
+} else if (mascotConfig.model) {
+  MMD( mascotConfig, document.getElementById('mascot') );
+}
 
 function addMessages(body, type, id = null) {
   id = id || new Date().valueOf();
@@ -40,24 +54,48 @@ function addMessages(body, type, id = null) {
     body: body
   };
 
-  m.setState({
-    messages: m.state.messages.concat([message])
+  messages.setState({
+    messages: messages.state.messages.concat([message])
   });
 
   document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
 }
 
+function notify(body, title = 'MascotOps', icon = null) {
+  if (!body) {
+    return false;
+  }
+
+  var param = {
+    title: title,
+    body: body
+  };
+
+  if (icon) {
+    param.icon = icon;
+  }
+  var notification = new Notification(param.title, param);
+
+  notification.onclick = function () {
+    mainWindow.focus();
+  };
+}
+
 robot.on('send_inside', (envelope, strings) => {
   addMessages(strings[0], 'chara');
+  if (!mainWindow.isFocused()) {
+    notify(strings[0], robot.alias, mascotConfig.icon);
+  }
 });
 
 robot.on('send_outside', (envelope, strings) => {
   addMessages(strings, 'chara');
+  if (!mainWindow.isFocused()) {
+    notify(strings, robot.alias, mascotConfig.icon);
+  }
 });
 
 robot.on('receive_inside', (message) => {
-  // console.log(message);
-  // addMessages(message.text, 'user-command');
 });
 
 robot.on('receive_outside', (message, strings) => {
@@ -70,7 +108,9 @@ robot.on('receive_outside', (message, strings) => {
 
 Recognition.addEventListener('result', function(event){
   if (event.results[event.resultIndex].isFinal) {
-    robot.receiveVoice(event.results[event.resultIndex][0].transcript);
+    var text = event.results[event.resultIndex][0].transcript;
+    addMessages(text, 'user');
+    robot.receiveInput(text);
   }
 });
 
@@ -78,23 +118,24 @@ Recognition.addEventListener('error', function (err) {
   if (err.error != 'no-speech') {
     console.error(err);
   }
-  recognition = null;
 });
 
 ipcRenderer.on('voice-input', function() {
   if (recognitionStarted) {
     clearTimeout(recognitionStopTimer);
-    recognition.stop();
+    Recognition.stop();
     recognitionStarted = false;
+    input.setState({ placeholder: '' });
   } else {
-    recognition.start();
+    Recognition.start();
     recognitionStarted = true;
+    input.setState({ placeholder: 'Speak Now' });
     recognitionStopTimer = setTimeout(function () {
-      recognition.stop();
+      Recognition.stop();
       recognitionStarted = false;
+      input.setState({ placeholder: '' });
     }, 10000);
   }
-  console.log(recognitionStarted);
 });
 
 ipcRenderer.on('focus', function() {
@@ -105,3 +146,20 @@ ipcRenderer.on('focus', function() {
 ipcRenderer.on('blur', function() {
   document.body.classList.add('blur');
 });
+
+var menu = new Menu();
+var submenu = new Menu();
+for (let command of robot.userCommands) {
+  submenu.append(new MenuItem({ label: command.text, click() {
+    robot.receiveInput(command.text);
+  } }));
+}
+menu.append(new MenuItem({ label: 'Commands', type: 'submenu', submenu: submenu }));
+menu.append(new MenuItem({ type: 'separator' }));
+menu.append(new MenuItem({ label: 'Minimize',  role: 'minimize'}));
+menu.append(new MenuItem({ label: 'Close',  role: 'close'}));
+
+window.addEventListener('contextmenu', function (e) {
+  e.preventDefault();
+  menu.popup(Remote.getCurrentWindow());
+}, false);
