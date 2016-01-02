@@ -59,6 +59,14 @@ function addMessages(body, type, id = null) {
   });
 
   document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+
+  if (type !== 'user' && !mainWindow.isFocused()) {
+    var title = '';
+    if (type == 'chara') {
+      title = robot.alias;
+    }
+    notify(body, title, mascotConfig.icon);
+  }
 }
 
 function notify(body, title = 'MascotOps', icon = null) {
@@ -83,16 +91,10 @@ function notify(body, title = 'MascotOps', icon = null) {
 
 robot.on('send_inside', (envelope, strings) => {
   addMessages(strings[0], 'chara');
-  if (!mainWindow.isFocused()) {
-    notify(strings[0], robot.alias, mascotConfig.icon);
-  }
 });
 
 robot.on('send_outside', (envelope, strings) => {
   addMessages(strings, 'chara');
-  if (!mainWindow.isFocused()) {
-    notify(strings, robot.alias, mascotConfig.icon);
-  }
 });
 
 robot.on('receive_inside', (message) => {
