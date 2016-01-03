@@ -13,7 +13,7 @@ Options = {
 
 process.env.PWD = process.cwd() if /^win/.test(process.platform)
 
-hubotBasePath = Path.join __dirname, '../../', 'node_modules', 'hubot'
+hubotBasePath = Path.join __dirname, '..', 'node_modules', 'hubot'
 adapterPath = Path.join hubotBasePath, 'src', 'adapters'
 robot = Hubot.loadBot adapterPath,
                       Options.adapter,
@@ -98,5 +98,4 @@ loadScripts = ->
 robot.adapter.on 'connected', loadScripts
 
 robot.run()
-
 module.exports = robot
